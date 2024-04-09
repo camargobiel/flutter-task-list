@@ -68,7 +68,9 @@ class LoginPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, "/tasks");
+                          },
                           child: const Text("Entrar"),
                         ),
                       ],

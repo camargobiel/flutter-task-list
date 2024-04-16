@@ -1,9 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class TasksPage extends StatelessWidget {
   const TasksPage({super.key});
 
   void _logout(context) {
+    FirebaseAuth.instance.signOut();
     Navigator.pushReplacementNamed(context, "/login");
   }
 
@@ -19,9 +21,11 @@ class TasksPage extends StatelessWidget {
         "created_at": DateTime.now().toString(),
       },
     ];
+    final user = FirebaseAuth.instance.currentUser!;
 
     return Scaffold(
       appBar: AppBar(
+        title: Text(user.email!),
         actions: [
           IconButton(
               onPressed: () {

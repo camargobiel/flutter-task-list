@@ -1,7 +1,46 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final emailController = TextEditingController();
+
+  final passwordController = TextEditingController();
+
+  String? emailError;
+  String? passwordError;
+
+  void _createUser(BuildContext context) async {
+    emailError = null;
+    passwordError = null;
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      Navigator.pushReplacementNamed(context, "/login");
+    } catch (e) {
+      setState(() {
+        String error = e.toString();
+        if (error.contains("invalid-email") == true) {
+          emailError = "E-mail inválido";
+        }
+        if (error.contains("missing-password")) {
+          passwordError = "Senha inválida";
+        }
+        if (error.contains("weak-password")) {
+          passwordError = "Senha fraca. Digite no mínimo 6 caracteres";
+        }
+      });
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +64,7 @@ class RegisterPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                height: 600,
+                height: 400,
                 padding: const EdgeInsets.all(40),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.deepPurple.shade200),
@@ -51,37 +90,57 @@ class RegisterPage extends StatelessWidget {
                         color: Colors.black45,
                       ),
                     ),
-                    const TextField(
+                    /* const TextField(
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         label: Text("Nome completo"),
                       ),
-                    ),
-                    const TextField(
+                    ), */
+                    TextField(
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        label: Text("E-mail"),
+                        border: const OutlineInputBorder(),
+                        label: const Text("E-mail"),
+                        error: emailError != null
+                            ? Text(
+                                emailError!,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                ),
+                              )
+                            : null,
                       ),
+                      controller: emailController,
                     ),
-                    const TextField(
+                    TextField(
                       decoration: InputDecoration(
-                        label: Text("Senha"),
-                        border: OutlineInputBorder(),
+                        label: const Text("Senha"),
+                        border: const OutlineInputBorder(),
+                        error: passwordError != null
+                            ? Text(
+                                passwordError!,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                ),
+                              )
+                            : null,
                       ),
                       obscureText: true,
+                      controller: passwordController,
                     ),
-                    const TextField(
+                    /* const TextField(
                       decoration: InputDecoration(
                         label: Text("Confirmar senha"),
                         border: OutlineInputBorder(),
                       ),
                       obscureText: true,
-                    ),
+                    ), */
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            _createUser(context);
+                          },
                           child: const Text("Cadastrar"),
                         ),
                       ],

@@ -17,8 +17,8 @@ class App extends StatelessWidget {
         primarySwatch: Colors.deepPurple,
       ),
       routes: {
-        "/login": (context) => const LoginPage(),
-        "/register": (context) => const RegisterPage(),
+        "/login": (context) => LoginPage(),
+        "/register": (context) => RegisterPage(),
         "/tasks": (context) => const TasksPage(),
         "/new-task": (context) => const NewTaskPage(),
       },

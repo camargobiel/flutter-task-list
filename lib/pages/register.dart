@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/errors.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -10,11 +12,11 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
-
   final passwordController = TextEditingController();
-
   String? emailError;
   String? passwordError;
+
+  Map<String, String> formErrors = {};
 
   void _createUser(BuildContext context) async {
     emailError = null;
@@ -25,21 +27,25 @@ class _RegisterPageState extends State<RegisterPage> {
         password: passwordController.text,
       );
       Navigator.pushReplacementNamed(context, "/login");
-    } catch (e) {
-      setState(() {
-        String error = e.toString();
-        if (error.contains("invalid-email") == true) {
-          emailError = "E-mail inválido";
-        }
-        if (error.contains("missing-password")) {
-          passwordError = "Senha inválida";
-        }
-        if (error.contains("weak-password")) {
-          passwordError = "Senha fraca. Digite no mínimo 6 caracteres";
-        }
-      });
-      print(e);
+    } catch (err) {
+      _formatErrors(err);
     }
+  }
+
+  void _formatErrors(Object err) {
+    formErrors = {};
+    String error = err.toString();
+    String customError = errors[error] ?? "Erro desconhecido";
+    setState(() {
+      if (customError.toLowerCase().contains("senha")) {
+        formErrors["password"] = customError;
+      } else if (customError.toLowerCase().contains("e-mail")) {
+        formErrors["email"] = customError;
+      } else {
+        formErrors["email"] = customError;
+        formErrors["password"] = customError;
+      }
+    });
   }
 
   @override
@@ -54,7 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
             colors: <Color>[
               Color.fromARGB(82, 255, 255, 255),
               Color.fromARGB(105, 191, 107, 255),
-            ], // Gradient from https://learnui.design/tools/gradient-generator.html
+            ],
             tileMode: TileMode.mirror,
           ),
         ),

@@ -11,6 +11,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String? emailError;
@@ -22,11 +23,13 @@ class _RegisterPageState extends State<RegisterPage> {
     emailError = null;
     passwordError = null;
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      var credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      Navigator.pushReplacementNamed(context, "/login");
+      await credential.user!.updateDisplayName(nameController.value.text);
+      Navigator.pushReplacementNamed(context, "/tasks");
     } catch (err) {
       _formatErrors(err);
     }
@@ -96,19 +99,20 @@ class _RegisterPageState extends State<RegisterPage> {
                         color: Colors.black45,
                       ),
                     ),
-                    /* const TextField(
-                      decoration: InputDecoration(
+                    TextField(
+                      decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        label: Text("Nome completo"),
+                        label: Text("Nome"),
                       ),
-                    ), */
+                      controller: nameController,
+                    ),
                     TextField(
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
                         label: const Text("E-mail"),
-                        error: emailError != null
+                        error: formErrors["email"] != null
                             ? Text(
-                                emailError!,
+                                formErrors["email"]!,
                                 style: const TextStyle(
                                   color: Colors.red,
                                 ),
@@ -121,9 +125,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       decoration: InputDecoration(
                         label: const Text("Senha"),
                         border: const OutlineInputBorder(),
-                        error: passwordError != null
+                        error: formErrors["password"] != null
                             ? Text(
-                                passwordError!,
+                                formErrors["password"]!,
                                 style: const TextStyle(
                                   color: Colors.red,
                                 ),
@@ -133,13 +137,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: true,
                       controller: passwordController,
                     ),
-                    /* const TextField(
-                      decoration: InputDecoration(
-                        label: Text("Confirmar senha"),
-                        border: OutlineInputBorder(),
-                      ),
-                      obscureText: true,
-                    ), */
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

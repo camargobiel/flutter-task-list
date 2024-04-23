@@ -1,31 +1,45 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 
-class TasksPage extends StatelessWidget {
+class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
+
+  @override
+  State<TasksPage> createState() => _TasksPageState();
+}
+
+class _TasksPageState extends State<TasksPage> {
+  List<Map<String, dynamic>> tasks = [];
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref("tasks");
 
   void _logout(context) {
     FirebaseAuth.instance.signOut();
     Navigator.pushReplacementNamed(context, "/login");
   }
 
+  void _remove(DataSnapshot snapshot) async {
+    if (snapshot.key != null) {
+      await _databaseRef.child(snapshot.key as String).remove();
+    }
+  }
+
+  void _check(DataSnapshot snapshot, bool? value) async {
+    if (snapshot.key != null) {
+      await _databaseRef.child(snapshot.key as String).update({
+        "done": value,
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> tasks = [
-      {
-        "title": "Tarefa 1",
-        "created_at": DateTime.now().toString(),
-      },
-      {
-        "title": "Tarefa 2",
-        "created_at": DateTime.now().toString(),
-      },
-    ];
     final user = FirebaseAuth.instance.currentUser!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(user.email!),
+        title: Text(user.displayName!),
         actions: [
           IconButton(
               onPressed: () {
@@ -46,69 +60,87 @@ class TasksPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: SizedBox(
-          height: tasks.length * 100,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Atividades (${tasks.length})",
-                style: const TextStyle(
-                  fontSize: 23,
-                  color: Colors.deepPurple,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(
-                height: tasks.length * 75,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ...tasks.map((item) => Dismissible(
-                          key: Key(item["title"]),
-                          onDismissed: (direction) {},
-                          background: Container(
-                            alignment: Alignment.centerLeft,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.red,
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(20),
-                              child: Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          child: CheckboxListTile(
-                            value: false,
-                            onChanged: (value) {},
-                            title: Text(
-                              item["title"],
-                              style: const TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                            subtitle: Text(
-                              item["created_at"],
-                              style: const TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                            tileColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: Colors.deepPurple.shade200,
-                                width: 1,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
+          child: FirebaseAnimatedList(
+            query: _databaseRef,
+            defaultChild: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+              ],
+            ),
+            itemBuilder: (context, snapshot, animation, index) {
+              Map array = snapshot.value as Map;
+
+              return Column(
+                children: [
+                  Dismissible(
+                    key: Key(array["title"]),
+                    onDismissed: (direction) {
+                      _remove(snapshot);
+                    },
+                    background: Container(
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.red,
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Icon(
+                          Icons.delete,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    child: CheckboxListTile(
+                      value: array["done"] ?? false,
+                      onChanged: (value) {
+                        _check(snapshot, value);
+                      },
+                      title: Row(
+                        children: [
+                          Text(
+                            array["title"],
+                            style: const TextStyle(
+                              fontSize: 15,
                             ),
                           ),
-                        ))
-                  ],
-                ),
-              )
-            ],
+                          const SizedBox(
+                            width: 200,
+                          ),
+                          Text(
+                            array["final_date"] != null
+                                ? "${array["final_date"]}"
+                                : "",
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black45,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text(
+                        array["description"],
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                      ),
+                      tileColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          color: Colors.deepPurple.shade200,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  )
+                ],
+              );
+            },
           ),
         ),
       ),

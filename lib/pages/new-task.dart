@@ -1,7 +1,20 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class NewTaskPage extends StatelessWidget {
-  const NewTaskPage({super.key});
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final dateController = TextEditingController();
+
+  NewTaskPage({super.key});
+
+  _createTask(BuildContext context) async {
+    await FirebaseDatabase.instance.ref().child("tasks").push().set({
+      "title": titleController.value.text,
+      "description": descriptionController.value.text,
+      "final_date": dateController.value.text,
+    }).whenComplete(() => Navigator.pop(context));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,26 +39,29 @@ class NewTaskPage extends StatelessWidget {
                 ),
               ],
             ),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 label: Text("Título da tarefa"),
                 icon: Icon(Icons.title),
               ),
+              controller: titleController,
             ),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 label: Text("Descrição"),
                 icon: Icon(Icons.description),
               ),
+              controller: descriptionController,
             ),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 label: Text("Data de conclusão"),
                 icon: Icon(Icons.date_range),
               ),
+              controller: dateController,
             ),
             /* InputDatePickerFormField(
               firstDate: DateTime.now(),
@@ -61,7 +77,9 @@ class NewTaskPage extends StatelessWidget {
                     Size(0, 45),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () async {
+                  await _createTask(context);
+                },
                 child: Container(
                   width: 122,
                   alignment: Alignment.center,

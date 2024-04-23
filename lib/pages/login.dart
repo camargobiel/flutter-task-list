@@ -98,9 +98,9 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
                         label: const Text("E-mail"),
-                        error: emailError != null
+                        error: formErrors["email"] != null
                             ? Text(
-                                emailError!,
+                                formErrors["email"]!,
                                 style: const TextStyle(
                                   color: Colors.red,
                                 ),
@@ -113,9 +113,9 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: InputDecoration(
                         label: const Text("Senha"),
                         border: const OutlineInputBorder(),
-                        error: passwordError != null
+                        error: formErrors["password"] != null
                             ? Text(
-                                passwordError!,
+                                formErrors["password"]!,
                                 style: const TextStyle(
                                   color: Colors.red,
                                 ),
